@@ -1,0 +1,18 @@
+[package]
+name = "mini-taiko"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = [
+  "sequencer",
+  "prover",
+  "node",
+  "contracts"
+]
+resolver = "2" 
+
+[workspace.dependencies]
+alloy = "0.11.0"
+eyre = "0.6.12"
+tokio = { version = "1.43.0", features = ["rt-multi-thread", "macros"] }
