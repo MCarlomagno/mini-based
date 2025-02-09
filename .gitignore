@@ -3,3 +3,5 @@
 /node/target
 /prover/target
 /sequencer/target
+
+/contracts/.env

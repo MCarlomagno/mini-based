@@ -7,3 +7,4 @@ edition = "2021"
 alloy.workspace = true
 eyre.workspace = true
 tokio.workspace = true
+dotenv.workspace = true
