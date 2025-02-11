@@ -5,13 +5,14 @@ A minimal implementation of a taiko-like based rollup
 Components:
 
 - L1 contract (inbox) including `proposeBatch` and `proveBatch`
+    - sepolia: 0xdB8eB6D1d24c312DBdd3fDc01B37dD2862D6C391
 - Sequencer
-    - picks txs from mempool, adds to batch & proposes batch + prover.
+    - picks txs from mempool, adds to batch & proposes batch.
 - Prover
     - reads batches, “runs” batches and submit proofs.
 - Node
-    - mempool: a queue of txs with slice & push functions.
-    - listens to new batches proven on L1 and add them on the chain.
+    - mempool: list of random transactions in a json file.
+    - monitor: listens to new batches proven on L1 and add them on the chain.
 
 Limitations
 
