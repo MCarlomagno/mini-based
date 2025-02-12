@@ -33,8 +33,11 @@ impl Monitor {
     let sub = provider.subscribe_logs(&filter).await.unwrap();
     let mut stream = sub.into_stream();
 
+    println!("monitoring Inbox contract logs...");
+
     while let Some(log) = stream.next().await {
       let batch_id = log.topic0().unwrap();
+      println!("listenining batches! batch id: {:?}", batch_id);
       // TODO, read full batch and construct blocks.
     }
   }

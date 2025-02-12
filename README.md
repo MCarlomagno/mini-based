@@ -9,9 +9,9 @@ Components:
 - Sequencer
     - picks txs from mempool, adds to batch & proposes batch.
 - Prover
-    - reads batches, “runs” batches and submit proofs.
+    - runs batches off-chain and submit proofs.
 - Node
-    - mempool: list of random transactions in a json file.
+    - mempool: list of random raw transactions in a json file.
     - monitor: listens to new batches proven on L1 and add them on the chain.
 
 Limitations
