@@ -1,8 +1,8 @@
 # Mini-taiko 🧸
 
-A minimal implementation of a taiko-like based rollup
+An experimental local implementation of a taiko-like based rollup with total anarchy.
 
-Components:
+## Components
 
 - L1 contract (inbox) including `proposeBatch` and `proveBatch`
     - sepolia: 0xdB8eB6D1d24c312DBdd3fDc01B37dD2862D6C391
@@ -14,15 +14,24 @@ Components:
     - mempool: list of random raw transactions in a json file.
     - monitor: listens to new batches proven on L1 and add them on the chain.
 
-Limitations
+## Getting started
+
+1. Run [anvil](https://book.getfoundry.sh/anvil/) locally
+2. Copy one of the funded wallets private keys and add it to `contracts/.env` (`PRIVATE_KEY` var)
+3. Deploy Inbox contract `cd contracts && cargo run`.
+4. Open a new tab, run prover, `cd prover && cargo run`.
+5. Copy one of the funded wallets private keys and add it to `sequencer/.env` (`PRIVATE_KEY` var)
+6. Open a new tab, run sequencer to send a batch of transactions, `cd sequencer && cargo run`.
+
+## Limitations
 
 - Txs are just hashes, not full txs payloads.
 - No batch proving, the prover just generates a mock proof that is always valid.
 - No L2 consensus or DA, there is a single node that processes and posts all the blocks.
 
-Future/Missing Work:
+## Future/Missing Work:
 
-- Support txs payloads + fee mechanism
+- Syncronous composability with L1
 - Reorg handling
-- implement proving + support multiple provers
-- Implement DA
+- Implement proving
+- Implement DA layer

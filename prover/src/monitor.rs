@@ -36,9 +36,10 @@ impl Monitor {
     println!("monitoring Inbox contract logs...");
 
     while let Some(log) = stream.next().await {
+      println!("new logs arrived");
       let log_data = log.data();
 
-      println!("Batch proved: {}", log_data.data);
+      println!("Batch proposed: {}", log_data.data);
     }
   }
 }

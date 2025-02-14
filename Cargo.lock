@@ -2414,6 +2414,11 @@ dependencies = [
 [[package]]
 name = "prover"
 version = "0.1.0"
+dependencies = [
+ "alloy",
+ "futures-util",
+ "tokio",
+]
 
 [[package]]
 name = "quick-error"
@@ -2800,6 +2805,14 @@ checksum = "cd0b0ec5f1c1ca621c432a25813d8d60c88abe6d3e08a3eb9cf37d97a0fe3d73"
 [[package]]
 name = "sequencer"
 version = "0.1.0"
+dependencies = [
+ "alloy",
+ "dotenv",
+ "hex",
+ "serde",
+ "serde_json",
+ "tokio",
+]
 
 [[package]]
 name = "serde"

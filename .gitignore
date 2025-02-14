@@ -5,3 +5,4 @@
 /sequencer/target
 
 /contracts/.env
+/sequencer/.env
