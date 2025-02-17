@@ -5,13 +5,13 @@ use alloy::{
 };
 use futures_util::stream::StreamExt;
 
-pub struct Monitor {
+pub struct BlockBuilder {
   contract_address: String,
   event_signature: String,
   rpc_url: String,
 }
 
-impl Monitor {
+impl BlockBuilder {
   pub fn new(contract_address: &str, rpc_url: &str, event_signature: &str) -> Self {
     Self {
       rpc_url: rpc_url.to_string(),

@@ -1,4 +1,5 @@
 mod monitor;
+mod prover;
 
 use monitor::Monitor;
 

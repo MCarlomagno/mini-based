@@ -1,9 +1,15 @@
 use alloy::{
-  primitives::Address,
-  providers::{Provider, ProviderBuilder, WsConnect},
-  rpc::types::{BlockNumberOrTag, Filter},
+  primitives::Address, providers::{Provider, ProviderBuilder, WsConnect}, rpc::types::{BlockNumberOrTag, Filter}, sol, sol_types::SolEvent,
 };
 use futures_util::stream::StreamExt;
+
+use crate::prover::Prover;
+
+sol! {
+  contract Inbox {
+    event BatchProposed(uint256 batchId, bytes batchData);
+  }
+}
 
 pub struct Monitor {
   contract_address: String,
@@ -36,10 +42,20 @@ impl Monitor {
     println!("monitoring Inbox contract logs...");
 
     while let Some(log) = stream.next().await {
-      println!("new logs arrived");
-      let log_data = log.data();
+      match log.topic0() {
+        Some(&Inbox::BatchProposed::SIGNATURE_HASH) => {
+          let Inbox::BatchProposed { batchId, batchData } =
+              log.log_decode().unwrap().inner.data;
+          
+          println!("Got BatchProposed event!");
+          println!("  batch_id   = {batchId}");
+          println!("  batch_data = 0x{}", hex::encode(&batchData));
 
-      println!("Batch proposed: {}", log_data.data);
+          let prover = Prover::new(&self.contract_address, &self.rpc_url);
+          prover.prove_batch(batchId, batchData).await;
+        }
+        _ => (),
+      }
     }
   }
 }

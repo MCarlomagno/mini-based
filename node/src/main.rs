@@ -1,7 +1,7 @@
 mod mempool;
-mod monitor;
+mod block_builder;
 
-use monitor::Monitor;
+use block_builder::BlockBuilder;
 use mempool::create_mempool;
 
 #[tokio::main]
@@ -15,6 +15,6 @@ async fn main() {
   let event_signature = "BatchProved(uint256)";
 
   // listens new proven batches from L1 inbox.
-  let monitor: Monitor = Monitor::new(l1_inbox_address, rpc_url, event_signature);
-  monitor.listen().await;
+  let block_builder: BlockBuilder = BlockBuilder::new(l1_inbox_address, rpc_url, event_signature);
+  block_builder.listen().await;
 }
