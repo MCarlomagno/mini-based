@@ -2,7 +2,6 @@ use alloy::{
   primitives::Address, providers::{Provider, ProviderBuilder, WsConnect}, rpc::types::{BlockNumberOrTag, Filter}, sol, sol_types::SolEvent,
 };
 use futures_util::stream::StreamExt;
-
 use crate::prover::Prover;
 
 sol! {
@@ -39,7 +38,7 @@ impl Monitor {
     let sub = provider.subscribe_logs(&filter).await.unwrap();
     let mut stream = sub.into_stream();
 
-    println!("monitoring Inbox contract logs...");
+    println!("⏳ monitoring Inbox contract logs...");
 
     while let Some(log) = stream.next().await {
       match log.topic0() {
@@ -47,9 +46,7 @@ impl Monitor {
           let Inbox::BatchProposed { batchId, batchData } =
               log.log_decode().unwrap().inner.data;
           
-          println!("Got BatchProposed event!");
-          println!("  batch_id   = {batchId}");
-          println!("  batch_data = 0x{}", hex::encode(&batchData));
+          println!("Detected BatchProposed event!");
 
           let prover = Prover::new(&self.contract_address, &self.rpc_url);
           prover.prove_batch(batchId, batchData).await;

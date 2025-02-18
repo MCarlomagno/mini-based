@@ -68,6 +68,6 @@ impl Prover {
         .send().await
         .unwrap();
 
-    println!("prove batch call result {:?}", result);
+    println!("batch proven: {:?}", batch_id);
   }
 }

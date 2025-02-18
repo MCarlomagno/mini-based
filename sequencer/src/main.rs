@@ -39,18 +39,18 @@ async fn send_batch(inbox_raw_address: &str, rpc_url: &str, batch: String) {
     let inbox = Inbox::new(inbox_address, provider);
 
     let batch_bytes = Bytes::from(hex::decode(batch.trim_start_matches("0x")).unwrap());
-    let result = inbox
+    let _ = inbox
         .proposeBatch(batch_bytes)
         .send().await
         .unwrap();
 
-    println!("propose batch call result {:?}", result)
+    println!("New batch proposed! 🏗️")
 }
 
 #[tokio::main]
 async fn main() {
     let rpc_url = "http://localhost:8545";
-    let l1_inbox_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    let l1_inbox_address = "0x5fc8d32690cc91d4c39d9d3abcbd16989f875707";
     let mut file = File::open("../node/mempool.json").unwrap();
     let mut buff = String::new();
     file.read_to_string(&mut buff).unwrap();
