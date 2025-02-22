@@ -17,7 +17,10 @@ An experimental local implementation of a taiko-like based rollup with total ana
 ## Getting started
 
 1. Run [anvil](https://book.getfoundry.sh/anvil/) locally
-2. Copy one of the funded wallets private keys and add it to `contracts/.env` (`PRIVATE_KEY` var)
+2. Copy funded wallets to fill private keys in `.env`
+    - `SEQUENCER_PRIVATE_KEY`
+    - `PROVER_PRIVATE_KEY`
+    - `INBOX_DEPLOYER_PRIVATE_KEY`
 3. Deploy Inbox contract `cd contracts && cargo run`.
 4. Open a new tab, run prover, `cd prover && cargo run`.
 5. Copy one of the funded wallets private keys and add it to `sequencer/.env` (`PRIVATE_KEY` var)
