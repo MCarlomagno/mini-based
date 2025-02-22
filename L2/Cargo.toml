@@ -12,3 +12,4 @@ futures-util.workspace = true
 tokio.workspace = true
 hex.workspace = true
 alloy-rlp.workspace = true
+revm.workspace = true

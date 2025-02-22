@@ -37,7 +37,7 @@ fn generate_random_transaction(rng: &mut StdRng) -> Signed<TxEip1559> {
     let tx = TxEip1559 {
       chain_id: 1,
       nonce: rng.gen_range(1..100),
-      input: hex!("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").into(),
+      input: hex!("").into(),
       gas_limit: 21000,
       to: Address::random().into(),
       value: U256::from(0_u64),

@@ -1,3 +1,4 @@
+
 use alloy::{
     consensus::{Signed, TxEip1559},
     primitives::Address,
@@ -57,6 +58,7 @@ impl BlockBuilder {
                         .iter()
                         .map(|encoded|  Signed::<TxEip1559>::rlp_decode(&mut &encoded[..]).unwrap())
                         .collect();
+
 
                     let hashes: Vec<String> = transactions
                         .iter()
