@@ -7,8 +7,8 @@ edition = "2021"
 members = [
   "sequencer",
   "prover",
-  "node",
-  "contracts"
+  "L2",
+  "L1"
 ]
 resolver = "2" 
 

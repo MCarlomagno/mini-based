@@ -1,14 +1,15 @@
 use alloy::{
+  sol,
+  consensus::{Signed, TxEip1559},
   primitives::{Address, Bytes, U256},
-  providers::{ProviderBuilder, WsConnect},
+  providers::{ProviderBuilder, WsConnect}, 
   signers::local::PrivateKeySigner,
+  network::EthereumWallet
 };
 use std::str::FromStr;
-use alloy::sol;
-use dotenv::dotenv;
-use alloy::network::EthereumWallet;
 use std::time::{Instant, Duration};
 use tokio::time::sleep;
+use dotenv::dotenv;
 
 sol! {
   #[sol(rpc)]
@@ -33,20 +34,20 @@ impl Prover {
     }
   }
 
-  pub async fn generate_proof(&self, batch: Bytes) -> Bytes {
+  pub async fn generate_proof(&self, batch: Vec<Signed<TxEip1559>>) -> Bytes {
     let start = Instant::now();
-    println!("Starting proof generation...");
+    println!("New batch detected, starting proof generation... ⏳");
     
     // Simulate proof generation with 10 second delay
     sleep(Duration::from_secs(10)).await;
     
     let duration = start.elapsed();
-    println!("Proof generation completed in {:.2?}", duration);
+    println!("Proof generation completed in {:.2?} ✅", duration);
     
     Bytes::from("proof")
   }
 
-  pub async fn prove_batch(&self, batch_id: U256, batch: Bytes) {
+  pub async fn prove_batch(&self, batch_id: U256, batch: Vec<Signed<TxEip1559>>) {
     dotenv().ok(); 
     let pk = &std::env::var("PRIVATE_KEY").unwrap();
 
@@ -68,6 +69,6 @@ impl Prover {
         .send().await
         .unwrap();
 
-    println!("batch proven: {:?}", batch_id);
+    println!("Proof submitted to Inbox contract 🚀");
   }
 }

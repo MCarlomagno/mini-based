@@ -1,6 +1,5 @@
-use crate::prover::Prover;
 use alloy::{
-    consensus::{TxEip1559, Signed},
+    consensus::{Signed, TxEip1559},
     primitives::Address,
     providers::{Provider, ProviderBuilder, WsConnect},
     rpc::types::{BlockNumberOrTag, Filter},
@@ -11,17 +10,17 @@ use futures_util::stream::StreamExt;
 
 sol! {
   contract Inbox {
-    event BatchProposed(uint256 batchId, bytes[] batchData);
+    event BatchProved(uint256 batchId, bytes[] batchData);
   }
 }
 
-pub struct Monitor {
+pub struct BlockBuilder {
     contract_address: String,
     event_signature: String,
     rpc_url: String,
 }
 
-impl Monitor {
+impl BlockBuilder {
     pub fn new(contract_address: &str, rpc_url: &str, event_signature: &str) -> Self {
         Self {
             rpc_url: rpc_url.to_string(),
@@ -48,17 +47,27 @@ impl Monitor {
 
         while let Some(log) = stream.next().await {
             match log.topic0() {
-                Some(&Inbox::BatchProposed::SIGNATURE_HASH) => {
-                    let Inbox::BatchProposed { batchId, batchData } =
-                        log.log_decode().unwrap().inner.data;
+                Some(&Inbox::BatchProved::SIGNATURE_HASH) => {
+                    let Inbox::BatchProved {
+                        batchId: _batch_id,
+                        batchData,
+                    } = log.log_decode().unwrap().inner.data;
 
                     let transactions: Vec<Signed::<TxEip1559>> = batchData
                         .iter()
                         .map(|encoded|  Signed::<TxEip1559>::rlp_decode(&mut &encoded[..]).unwrap())
                         .collect();
 
-                    let prover = Prover::new(&self.contract_address, &self.rpc_url);
-                    prover.prove_batch(batchId, transactions).await;
+                    let hashes: Vec<String> = transactions
+                        .iter()
+                        .map(|tx| tx.signature_hash().to_string())
+                        .collect();
+
+                    println!("new block 📦");
+                    for hash in &hashes {
+                        println!("├─ {}", hash);
+                    }
+                    println!("└──────────────────────────────────────────");
                 }
                 _ => (),
             }
