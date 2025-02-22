@@ -51,7 +51,7 @@ fn generate_random_transaction(rng: &mut StdRng) -> Signed<TxEip1559> {
 
 async fn send_batch(inbox_raw_address: &str, rpc_url: &str, batch: Vec<Bytes>) {
     dotenv().ok(); 
-    let pk = &std::env::var("PRIVATE_KEY").unwrap();
+    let pk = &std::env::var("SEQUENCER_PRIVATE_KEY").unwrap();
     let signer: PrivateKeySigner = PrivateKeySigner::from_str(pk).unwrap();
     let wallet = EthereumWallet::from(signer);
     let inbox_address = Address::from_str(inbox_raw_address).unwrap();

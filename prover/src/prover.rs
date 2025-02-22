@@ -49,7 +49,7 @@ impl Prover {
 
   pub async fn prove_batch(&self, batch_id: U256, batch: Vec<Signed<TxEip1559>>) {
     dotenv().ok(); 
-    let pk = &std::env::var("PRIVATE_KEY").unwrap();
+    let pk = &std::env::var("PROVER_PRIVATE_KEY").unwrap();
 
     let proof = self.generate_proof(batch).await;
 

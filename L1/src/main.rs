@@ -44,7 +44,7 @@ sol! {
 #[tokio::main]
 async fn main() -> Result<()> {
   dotenv().ok(); 
-  let pk = &std::env::var("PRIVATE_KEY").unwrap();
+  let pk = &std::env::var("INBOX_DEPLOYER_PRIVATE_KEY").unwrap();
   let signer: PrivateKeySigner = PrivateKeySigner::from_str(pk).unwrap();
   let wallet = EthereumWallet::from(signer);
 
