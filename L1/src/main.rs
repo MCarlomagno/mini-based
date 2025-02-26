@@ -1,11 +1,7 @@
 use std::str::FromStr;
 use dotenv::dotenv;
 use alloy::{
-  providers::ProviderBuilder, 
-  sol, 
-  transports::http::reqwest::Url, 
-  network::EthereumWallet,
-  signers::local::PrivateKeySigner,
+  network::EthereumWallet, node_bindings::Anvil, providers::ProviderBuilder, signers::local::PrivateKeySigner, sol, transports::http::reqwest::Url
 };
 use eyre::Result;
 
@@ -44,6 +40,14 @@ sol! {
 #[tokio::main]
 async fn main() -> Result<()> {
   dotenv().ok(); 
+  // run node
+  let l1_port_str = std::env::var("L1_PORT").unwrap();
+  let l1_port = u16::from_str(&l1_port_str).unwrap();
+  let anvil = Anvil::new().port(l1_port).block_time(1).try_spawn().unwrap();
+
+  // TODO: use this logic to setup private key
+  // https://github.com/alloy-rs/examples/blob/main/examples/wallets/examples/private_key_signer.rs
+  
   let pk = &std::env::var("INBOX_DEPLOYER_PRIVATE_KEY").unwrap();
   let signer: PrivateKeySigner = PrivateKeySigner::from_str(pk).unwrap();
   let wallet = EthereumWallet::from(signer);
