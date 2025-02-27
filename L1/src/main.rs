@@ -50,7 +50,7 @@ async fn main() -> Result<()> {
         .try_spawn()
         .unwrap();
 
-    println!("running anvil in L1 in port {:?}", anvil.port());
+    println!("running L1 node in port {:?} 🛜", anvil.port());
 
     let signer: PrivateKeySigner = anvil.keys()[0].clone().into();
     let wallet = EthereumWallet::from(signer);
@@ -59,7 +59,7 @@ async fn main() -> Result<()> {
     let provider = ProviderBuilder::new().wallet(wallet).on_http(rpc_url);
     let contract = Inbox::deploy(&provider).await?;
 
-    println!("Deployed contract at address: {}", contract.address());
+    println!("Deployed L1 Inbox contract at address: {} 🚀", contract.address());
     // Keep anvil alive
     println!("Press Ctrl+C to exit");
     tokio::signal::ctrl_c()

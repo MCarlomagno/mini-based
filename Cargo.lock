@@ -2023,6 +2023,7 @@ version = "0.1.0"
 dependencies = [
  "alloy",
  "alloy-rlp",
+ "dotenv",
  "futures-util",
  "hex",
  "rand",
