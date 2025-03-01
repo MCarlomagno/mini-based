@@ -1,4 +1,3 @@
-
 use alloy::{
     consensus::{Signed, TxEip1559, TxEnvelope},
     primitives::Address,
@@ -12,7 +11,7 @@ use futures_util::stream::StreamExt;
 
 sol! {
   contract Inbox {
-    event BatchProved(uint256 batchId, bytes[] batchData);
+    event BatchProved(uint256 batchId, bytes[] batchData, uint256 blockNumber);
   }
 }
 
@@ -53,13 +52,13 @@ impl BlockBuilder {
                     let Inbox::BatchProved {
                         batchId: _batch_id,
                         batchData,
+                        blockNumber,
                     } = log.log_decode().unwrap().inner.data;
 
                     let transactions: Vec<TxEnvelope> = batchData
                         .iter()
-                        .map(|encoded|  TxEnvelope::decode(&mut &encoded[..]).unwrap())
+                        .map(|encoded| TxEnvelope::decode(&mut &encoded[..]).unwrap())
                         .collect();
-
 
                     let hashes: Vec<String> = transactions
                         .iter()

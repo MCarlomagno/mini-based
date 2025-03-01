@@ -12,7 +12,7 @@ use futures_util::stream::StreamExt;
 
 sol! {
   contract Inbox {
-    event BatchProposed(uint256 batchId, bytes[] batchData);
+    event BatchProposed(uint256 batchId, bytes[] batchData, uint256 blockNumber);
   }
 }
 
@@ -50,8 +50,11 @@ impl Monitor {
         while let Some(log) = stream.next().await {
             match log.topic0() {
                 Some(&Inbox::BatchProposed::SIGNATURE_HASH) => {
-                    let Inbox::BatchProposed { batchId, batchData } =
-                        log.log_decode().unwrap().inner.data;
+                    let Inbox::BatchProposed {
+                        batchId,
+                        batchData,
+                        blockNumber,
+                    } = log.log_decode().unwrap().inner.data;
 
                     let transactions: Vec<TxEnvelope> = batchData
                         .iter()
@@ -59,7 +62,7 @@ impl Monitor {
                         .collect();
 
                     let prover = Prover::new(&self.contract_address, &self.rpc_url);
-                    prover.prove_batch(batchId, transactions).await;
+                    prover.prove_batch(batchId, transactions, blockNumber).await;
                 }
                 _ => (),
             }

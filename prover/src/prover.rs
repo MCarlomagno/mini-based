@@ -13,7 +13,7 @@ use tokio::time::sleep;
 sol! {
   #[sol(rpc)]
   contract Inbox {
-    function proveBatch(uint256 id, bytes memory proof) public {
+    function proveBatch(uint256 id, bytes memory proof, uint256 blockNumber) public {
         require(_verifyBatch(batches[id], proof), "Invalid proof");
         emit BatchProved(batchId);
     }
@@ -46,7 +46,7 @@ impl Prover {
         Bytes::from("proof")
     }
 
-    pub async fn prove_batch(&self, batch_id: U256, batch: Vec<TxEnvelope>) {
+    pub async fn prove_batch(&self, batch_id: U256, batch: Vec<TxEnvelope>, block_number: U256) {
         let pk = &std::env::var("PROVER_PRIVATE_KEY").unwrap();
 
         let proof = self.generate_proof(batch).await;
@@ -63,7 +63,11 @@ impl Prover {
 
         let inbox = Inbox::new(inbox_address, provider);
 
-        let result = inbox.proveBatch(batch_id, proof).send().await.unwrap();
+        let result = inbox
+            .proveBatch(batch_id, proof, block_number)
+            .send()
+            .await
+            .unwrap();
 
         println!("Proof submitted to Inbox contract 🚀");
     }
