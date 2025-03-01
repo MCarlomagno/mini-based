@@ -1,12 +1,13 @@
 
 use alloy::{
-    consensus::{Signed, TxEip1559},
+    consensus::{Signed, TxEip1559, TxEnvelope},
     primitives::Address,
     providers::{Provider, ProviderBuilder, WsConnect},
     rpc::types::{BlockNumberOrTag, Filter},
     sol,
     sol_types::SolEvent,
 };
+use alloy_rlp::Decodable;
 use futures_util::stream::StreamExt;
 
 sol! {
@@ -54,9 +55,9 @@ impl BlockBuilder {
                         batchData,
                     } = log.log_decode().unwrap().inner.data;
 
-                    let transactions: Vec<Signed::<TxEip1559>> = batchData
+                    let transactions: Vec<TxEnvelope> = batchData
                         .iter()
-                        .map(|encoded|  Signed::<TxEip1559>::rlp_decode(&mut &encoded[..]).unwrap())
+                        .map(|encoded|  TxEnvelope::decode(&mut &encoded[..]).unwrap())
                         .collect();
 
 

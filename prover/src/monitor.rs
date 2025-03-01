@@ -1,12 +1,13 @@
 use crate::prover::Prover;
 use alloy::{
-    consensus::{TxEip1559, Signed},
+    consensus::{Signed, TxEip1559, TxEnvelope},
     primitives::Address,
     providers::{Provider, ProviderBuilder, WsConnect},
     rpc::types::{BlockNumberOrTag, Filter},
     sol,
     sol_types::SolEvent,
 };
+use alloy_rlp::Decodable;
 use futures_util::stream::StreamExt;
 
 sol! {
@@ -52,9 +53,9 @@ impl Monitor {
                     let Inbox::BatchProposed { batchId, batchData } =
                         log.log_decode().unwrap().inner.data;
 
-                    let transactions: Vec<Signed::<TxEip1559>> = batchData
+                    let transactions: Vec<TxEnvelope> = batchData
                         .iter()
-                        .map(|encoded|  Signed::<TxEip1559>::rlp_decode(&mut &encoded[..]).unwrap())
+                        .map(|encoded|  TxEnvelope::decode(&mut &encoded[..]).unwrap())
                         .collect();
 
                     let prover = Prover::new(&self.contract_address, &self.rpc_url);

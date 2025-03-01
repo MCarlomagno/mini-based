@@ -1,10 +1,5 @@
 use alloy::{
-  sol,
-  consensus::{Signed, TxEip1559},
-  primitives::{Address, Bytes, U256},
-  providers::{ProviderBuilder, WsConnect}, 
-  signers::local::PrivateKeySigner,
-  network::EthereumWallet
+  consensus::{Signed, TxEip1559, TxEnvelope}, network::EthereumWallet, primitives::{Address, Bytes, U256}, providers::{ProviderBuilder, WsConnect}, signers::local::PrivateKeySigner, sol
 };
 use std::str::FromStr;
 use std::time::{Instant, Duration};
@@ -34,7 +29,7 @@ impl Prover {
     }
   }
 
-  pub async fn generate_proof(&self, batch: Vec<Signed<TxEip1559>>) -> Bytes {
+  pub async fn generate_proof(&self, batch: Vec<TxEnvelope>) -> Bytes {
     let start = Instant::now();
     println!("New batch detected, starting proof generation... ⏳");
     
@@ -47,7 +42,7 @@ impl Prover {
     Bytes::from("proof")
   }
 
-  pub async fn prove_batch(&self, batch_id: U256, batch: Vec<Signed<TxEip1559>>) {
+  pub async fn prove_batch(&self, batch_id: U256, batch: Vec<TxEnvelope>) {
     dotenv().ok(); 
     let pk = &std::env::var("PROVER_PRIVATE_KEY").unwrap();
 

@@ -45,6 +45,7 @@ async fn main() -> Result<()> {
     let l1_port_str = std::env::var("L1_PORT").unwrap();
     let l1_port = u16::from_str(&l1_port_str).unwrap();
     let anvil = Anvil::new()
+        .keep_stdout()
         .port(l1_port)
         .block_time(1)
         .try_spawn()

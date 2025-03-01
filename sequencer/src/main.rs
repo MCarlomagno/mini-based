@@ -1,17 +1,14 @@
-use std::str::FromStr;
 use alloy::{
-  sol,
-  hex,
-  consensus::{SignableTransaction, Signed, TxEip1559},
-  primitives::{Address, Bytes, PrimitiveSignature, B256, U256},
-  providers::ProviderBuilder,
-  transports::http::reqwest::Url,
-  network::EthereumWallet,
-  signers::local::PrivateKeySigner,
-  rpc::types::AccessList
+    network::{EthereumWallet, TransactionBuilder},
+    primitives::{Address, Bytes, Uint, U256},
+    providers::{ext::AnvilApi, ProviderBuilder},
+    rpc::types::TransactionRequest,
+    signers::local::PrivateKeySigner,
+    sol,
 };
+use alloy_rlp::Encodable;
 use dotenv::dotenv;
-use rand::{Rng, rngs::StdRng, SeedableRng};
+use std::str::FromStr;
 
 sol! {
     #[allow(missing_docs)]
@@ -27,65 +24,87 @@ sol! {
     }
 }
 
-fn generate_random_transaction(rng: &mut StdRng) -> Signed<TxEip1559> {
-    let sig = PrimitiveSignature::from_scalars_and_parity(
-      B256::random(),
-      B256::random(),
-      false,
-    );
 
-    let tx = TxEip1559 {
-      chain_id: 1,
-      nonce: rng.gen_range(1..100),
-      input: hex!("").into(),
-      gas_limit: 21000,
-      to: Address::random().into(),
-      value: U256::from(0_u64),
-      max_fee_per_gas: 0x4a817c800,
-      max_priority_fee_per_gas: 0x3b9aca00,
-      access_list: AccessList::default(),
-    };
-
-    tx.into_signed(sig)
-}
-
-async fn send_batch(inbox_raw_address: &str, rpc_url: &str, batch: Vec<Bytes>) {
-    dotenv().ok(); 
-    let pk = &std::env::var("SEQUENCER_PRIVATE_KEY").unwrap();
-    let signer: PrivateKeySigner = PrivateKeySigner::from_str(pk).unwrap();
-    let wallet = EthereumWallet::from(signer);
-    let inbox_address = Address::from_str(inbox_raw_address).unwrap();
-    let provider = ProviderBuilder::new()
-        .wallet(wallet)
-        .on_http(Url::from_str(rpc_url).unwrap());
-
-    let inbox = Inbox::new(inbox_address, provider);
-
-    let _ = inbox
-        .proposeBatch(batch)
-        .send().await
+async fn create_random_batch(sender: &EthereumWallet) -> Vec<Bytes> {
+  let num_transactions = 10;
+  let mut batch = Vec::new();
+  let mut nonce = 11234;
+  
+  // Use a for loop to build transactions one by one
+  for _ in 0..num_transactions {
+    let tx = TransactionRequest::default()
+        .with_from(sender.default_signer().address())
+        .with_nonce(nonce)
+        .with_to(Address::random())
+        .with_value(U256::from(100))
+        .with_gas_limit(21_000)
+        .with_max_priority_fee_per_gas(1_000_000_000)
+        .with_max_fee_per_gas(20_000_000_000)
+        .build(&sender)
+        .await
         .unwrap();
+    
+    nonce += 1;
+    let mut buf = vec![];
+    tx.encode(&mut buf);
+    batch.push(Bytes::from(buf));
+  }
+
+  batch
 }
+
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
 
-    // creates a list of random transactions to sequence.
-    let mut rng = StdRng::from_entropy();
-    let num_transactions = 10;
-    let batch: Vec<Bytes> = (0..num_transactions)
-        .map(|_| {
-            let tx = generate_random_transaction(&mut rng);
-            let mut buf = vec![];
-            tx.rlp_encode(&mut buf);
-            Bytes::from(buf)
-        })
-        .collect();
-    println!("Loaded {} transactions", num_transactions);
+    // load L1 chain provider.
+    let l1_port_str = std::env::var("L1_PORT").unwrap();
+    let l2_port_str = std::env::var("L1_PORT").unwrap();
+    let l1_rpc_url = format!("http://localhost:{}", l1_port_str);
+    let l2_rpc_url = format!("http://localhost:{}", l2_port_str);
+    let l1_provider = ProviderBuilder::new()
+        .on_builtin(&l1_rpc_url)
+        .await
+        .unwrap();
+    let l2_provider = ProviderBuilder::new()
+      .on_builtin(&l2_rpc_url)
+      .await
+      .unwrap();
 
-    let rpc_url = "http://localhost:8545";
-    let l1_inbox_address = "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512";
-    send_batch(l1_inbox_address, rpc_url, batch).await;
+    println!("Setting up sequencer wallet ⏳");
+    // setup a random sequencer wallet for sequencing to L1
+    let sequencer_key: PrivateKeySigner = PrivateKeySigner::random();
+    let sequencer_wallet = EthereumWallet::from(sequencer_key);
+    let balance: Uint<256, 4> = Uint::from(100_000_000_000_000_000_000u128);
+    l1_provider
+        .anvil_set_balance(sequencer_wallet.default_signer().address(), balance)
+        .await
+        .unwrap();
+    l1_provider.anvil_impersonate_account(sequencer_wallet.default_signer().address()).await.unwrap();
+
+    println!("Setting up L2 sender wallet ⏳");
+    // setup a random tx sender wallet for constructing L2 batches.
+    let sender_key: PrivateKeySigner = PrivateKeySigner::random();
+    let sender_wallet = EthereumWallet::from(sender_key);
+    let balance: Uint<256, 4> = Uint::from(100_000_000_000_000_000_000u128);
+    l2_provider
+        .anvil_set_balance(sender_wallet.default_signer().address(), balance)
+        .await
+        .unwrap();
+
+    println!("Creating random batch of transactions ⏳");
+    let batch = create_random_batch(&sender_wallet).await;
+
+    // sends batch to L1 Inbox.
+    let l1_inbox_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    let inbox_address = Address::from_str(l1_inbox_address).unwrap();
+    let inbox = Inbox::new(inbox_address, &l1_provider);
+
+    println!("Proposing batch to L1 ⏳");
+    let _ = inbox.proposeBatch(batch)
+      .from(sequencer_wallet.default_signer().address())
+      .send().await.unwrap();
 
     println!("transactions sent");
 }
