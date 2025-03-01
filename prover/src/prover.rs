@@ -1,10 +1,14 @@
 use alloy::{
-  consensus::{Signed, TxEip1559, TxEnvelope}, network::EthereumWallet, primitives::{Address, Bytes, U256}, providers::{ProviderBuilder, WsConnect}, signers::local::PrivateKeySigner, sol
+    consensus::TxEnvelope,
+    network::EthereumWallet,
+    primitives::{Address, Bytes, U256},
+    providers::{ProviderBuilder, WsConnect},
+    signers::local::PrivateKeySigner,
+    sol,
 };
 use std::str::FromStr;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 use tokio::time::sleep;
-use dotenv::dotenv;
 
 sol! {
   #[sol(rpc)]
@@ -17,53 +21,50 @@ sol! {
 }
 
 pub struct Prover {
-  contract_address: String,
-  rpc_url: String,
+    contract_address: String,
+    rpc_url: String,
 }
 
 impl Prover {
-  pub fn new(contract_address: &str, rpc_url: &str) -> Self {
-    Self {
-      rpc_url: rpc_url.to_string(),
-      contract_address: contract_address.to_string(),
+    pub fn new(contract_address: &str, rpc_url: &str) -> Self {
+        Self {
+            rpc_url: rpc_url.to_string(),
+            contract_address: contract_address.to_string(),
+        }
     }
-  }
 
-  pub async fn generate_proof(&self, batch: Vec<TxEnvelope>) -> Bytes {
-    let start = Instant::now();
-    println!("New batch detected, starting proof generation... ⏳");
-    
-    // Simulate proof generation with 10 second delay
-    sleep(Duration::from_secs(10)).await;
-    
-    let duration = start.elapsed();
-    println!("Proof generation completed in {:.2?} ✅", duration);
-    
-    Bytes::from("proof")
-  }
+    pub async fn generate_proof(&self, batch: Vec<TxEnvelope>) -> Bytes {
+        let start = Instant::now();
+        println!("New batch detected, starting proof generation... ⏳");
 
-  pub async fn prove_batch(&self, batch_id: U256, batch: Vec<TxEnvelope>) {
-    dotenv().ok(); 
-    let pk = &std::env::var("PROVER_PRIVATE_KEY").unwrap();
+        // Simulate proof generation with 10 second delay
+        sleep(Duration::from_secs(10)).await;
 
-    let proof = self.generate_proof(batch).await;
+        let duration = start.elapsed();
+        println!("Proof generation completed in {:.2?} ✅", duration);
 
-    let signer: PrivateKeySigner = PrivateKeySigner::from_str(pk).unwrap();
-    let wallet = EthereumWallet::from(signer);
-    let inbox_address = Address::from_str(&self.contract_address).unwrap();
+        Bytes::from("proof")
+    }
 
-    let provider = ProviderBuilder::new()
-        .wallet(wallet)
-        .on_ws(WsConnect::new(&self.rpc_url))
-        .await.unwrap();
+    pub async fn prove_batch(&self, batch_id: U256, batch: Vec<TxEnvelope>) {
+        let pk = &std::env::var("PROVER_PRIVATE_KEY").unwrap();
 
-    let inbox = Inbox::new(inbox_address, provider);
+        let proof = self.generate_proof(batch).await;
 
-    let result = inbox
-        .proveBatch(batch_id, proof)
-        .send().await
-        .unwrap();
+        let signer: PrivateKeySigner = PrivateKeySigner::from_str(pk).unwrap();
+        let wallet = EthereumWallet::from(signer);
+        let inbox_address = Address::from_str(&self.contract_address).unwrap();
 
-    println!("Proof submitted to Inbox contract 🚀");
-  }
+        let provider = ProviderBuilder::new()
+            .wallet(wallet)
+            .on_ws(WsConnect::new(&self.rpc_url))
+            .await
+            .unwrap();
+
+        let inbox = Inbox::new(inbox_address, provider);
+
+        let result = inbox.proveBatch(batch_id, proof).send().await.unwrap();
+
+        println!("Proof submitted to Inbox contract 🚀");
+    }
 }

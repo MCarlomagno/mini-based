@@ -59,8 +59,9 @@ async fn main() {
     dotenv().ok();
 
     // load L1 chain provider.
+    let inbox_address = std::env::var("inbox_address").unwrap();
     let l1_port_str = std::env::var("L1_PORT").unwrap();
-    let l2_port_str = std::env::var("L1_PORT").unwrap();
+    let l2_port_str = std::env::var("L2_PORT").unwrap();
     let l1_rpc_url = format!("http://localhost:{}", l1_port_str);
     let l2_rpc_url = format!("http://localhost:{}", l2_port_str);
     let l1_provider = ProviderBuilder::new()
@@ -97,8 +98,7 @@ async fn main() {
     let batch = create_random_batch(&sender_wallet).await;
 
     // sends batch to L1 Inbox.
-    let l1_inbox_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-    let inbox_address = Address::from_str(l1_inbox_address).unwrap();
+    let inbox_address = Address::from_str(&inbox_address).unwrap();
     let inbox = Inbox::new(inbox_address, &l1_provider);
 
     println!("Proposing batch to L1 ⏳");
