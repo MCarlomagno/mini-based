@@ -1,5 +1,5 @@
 use alloy::{
-    consensus::{Signed, TxEip1559, TxEnvelope},
+    consensus::TxEnvelope,
     primitives::Address,
     providers::{Provider, ProviderBuilder, WsConnect},
     rpc::types::{BlockNumberOrTag, Filter},
@@ -65,7 +65,7 @@ impl BlockBuilder {
                         .map(|tx| tx.signature_hash().to_string())
                         .collect();
 
-                    println!("new block 📦");
+                    println!("new block 📦: {:?}", blockNumber);
                     for hash in &hashes {
                         println!("├─ {}", hash);
                     }
