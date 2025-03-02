@@ -1,8 +1,8 @@
 use alloy::{
     consensus::TxEnvelope,
     network::EthereumWallet,
-    primitives::{Address, Bytes, U256},
-    providers::{ProviderBuilder, WsConnect},
+    primitives::{Address, Bytes, Uint, U256},
+    providers::{ext::AnvilApi, ProviderBuilder},
     signers::local::PrivateKeySigner,
     sol,
 };
@@ -33,7 +33,7 @@ impl Prover {
         }
     }
 
-    pub async fn generate_proof(&self, batch: Vec<TxEnvelope>) -> Bytes {
+    pub async fn generate_proof(&self, _: Vec<TxEnvelope>) -> Bytes {
         let start = Instant::now();
         println!("New batch detected, starting proof generation... ⏳");
 
@@ -47,23 +47,33 @@ impl Prover {
     }
 
     pub async fn prove_batch(&self, batch_id: U256, batch: Vec<TxEnvelope>, block_number: U256) {
-        let pk = &std::env::var("PROVER_PRIVATE_KEY").unwrap();
+        // setup a random prover wallet for sequencing to L1
+        let prover_key: PrivateKeySigner = PrivateKeySigner::random();
+        let prover_wallet = EthereumWallet::from(prover_key);
 
         let proof = self.generate_proof(batch).await;
 
-        let signer: PrivateKeySigner = PrivateKeySigner::from_str(pk).unwrap();
-        let wallet = EthereumWallet::from(signer);
         let inbox_address = Address::from_str(&self.contract_address).unwrap();
 
         let provider = ProviderBuilder::new()
-            .wallet(wallet)
-            .on_ws(WsConnect::new(&self.rpc_url))
+            .wallet(&prover_wallet)
+            .on_builtin(&self.rpc_url)
+            .await
+            .unwrap();
+
+        let balance: Uint<256, 4> = Uint::from(100_000_000_000_000_000_000u128);
+        provider
+            .anvil_set_balance(prover_wallet.default_signer().address(), balance)
+            .await
+            .unwrap();
+        provider
+            .anvil_impersonate_account(prover_wallet.default_signer().address())
             .await
             .unwrap();
 
         let inbox = Inbox::new(inbox_address, provider);
 
-        let result = inbox
+        let _ = inbox
             .proveBatch(batch_id, proof, block_number)
             .send()
             .await
